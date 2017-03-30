@@ -16,16 +16,14 @@ import (
 )
 
 var (
-	FiveMinutes time.Duration = 5 * time.Minute
-	TwoHours time.Duration = 120 * time.Minute
-	DefaultTimeout = &schema.ResourceTimeout{
+	FiveMinutes    time.Duration = 5 * time.Minute
+	TwoHours       time.Duration = 120 * time.Minute
+	DefaultTimeout               = &schema.ResourceTimeout{
 		Create: &FiveMinutes,
 		Update: &FiveMinutes,
 		Delete: &FiveMinutes,
 	}
 )
-
-
 
 type BaseCrud struct {
 	D      *schema.ResourceData
@@ -165,4 +163,11 @@ func waitForStateRefresh(sync StatefulResource, timeout time.Duration, pending, 
 	sync.SetData()
 
 	return
+}
+func FilterMissingResourceError(sync ResourceVoider, err *error) {
+	if err != nil && strings.Contains((*err).Error(), "does not exist") {
+		log.Println("[DEBUG] Object does not exist, voiding resource and nullifying error")
+		sync.VoidState()
+		*err = nil
+	}
 }
